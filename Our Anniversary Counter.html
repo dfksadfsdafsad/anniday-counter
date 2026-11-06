@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Our Anniversary Counter</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=DM+Sans:wght@400;500&display=swap">
+<style>
+:root{--bg:#f7f1f6;--ink:#2a1533;--muted:#7d6488;--rose:#c4204f;--plate:#2a1533;--plate-ink:#ffe3ec;--line:#e6d6e4;--glow:#ffd0de;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#150b1c;--ink:#fbe6ee;--muted:#b79ac4;--rose:#ff7aa2;--plate:#f6dce5;--plate-ink:#2a1533;--line:#3a2347;--glow:#4a1f3b}}
+:root[data-theme="dark"]{--bg:#150b1c;--ink:#fbe6ee;--muted:#b79ac4;--rose:#ff7aa2;--plate:#f6dce5;--plate-ink:#2a1533;--line:#3a2347;--glow:#4a1f3b}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;background:radial-gradient(60rem 30rem at 50% 0,var(--glow),transparent 70%),var(--bg);color:var(--ink);font:400 1rem/1.6 "DM Sans",system-ui,sans-serif;overflow-x:hidden}
+main{position:relative;z-index:1;max-width:44rem;margin:0 auto;padding:clamp(2rem,8vw,5rem) 1.25rem 3rem;text-align:center}
+h1{font:600 clamp(1.5rem,5vw,2.2rem)/1.2 "Fraunces",Georgia,serif;margin:0 0 .25rem;display:flex;gap:.6rem;align-items:center;justify-content:center;flex-wrap:wrap}
+.beat{width:1.6rem;height:1.6rem;fill:var(--rose);animation:beat 1.2s ease-in-out infinite;transform-origin:center}
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.15)}}
+.sub{color:var(--muted);margin:0 0 2.5rem}
+.odo{display:inline-flex;font:600 clamp(4.5rem,24vw,10rem)/1 "Fraunces",Georgia,serif;color:var(--plate-ink);background:var(--plate);padding:.12em .18em;border-radius:.14em;box-shadow:0 1.2rem 3rem -1rem var(--rose),inset 0 0 0 1px var(--line);font-variant-numeric:tabular-nums}
+.d{display:block;width:.62em;height:1em;overflow:hidden}
+.s{display:block;transition:transform .9s cubic-bezier(.2,.9,.25,1)}
+.s>span{display:block;height:1em;text-align:center}
+.cap{margin:.9rem 0 2.25rem;font:500 1.1rem "Fraunces",Georgia,serif;color:var(--muted)}
+.clock{display:flex;justify-content:center;gap:clamp(.75rem,4vw,2rem);margin-bottom:2rem}
+.u{display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.u .odo{font-size:clamp(2.2rem,11vw,4rem);box-shadow:inset 0 0 0 1px var(--line);padding:.1em .15em}
+.u small{color:var(--muted)}
+.facts{display:grid;gap:.4rem;margin:0 auto 2rem;color:var(--muted)}
+.facts b{color:var(--ink);font-weight:500}
+details{max-width:24rem;margin:0 auto;border:1px solid var(--line);border-radius:.75rem;padding:.75rem 1rem;text-align:left}
+summary{cursor:pointer;font-weight:500}
+summary:focus-visible,input:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
+label{display:block;margin-top:.9rem;font-size:.9rem;color:var(--muted)}
+input{width:100%;margin-top:.25rem;padding:.55rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg);color:var(--ink);font:inherit}
+.heart{position:fixed;bottom:-2rem;z-index:0;pointer-events:none;color:var(--rose);opacity:0;animation:rise linear forwards}
+@keyframes rise{0%{opacity:0;transform:translateY(0) rotate(0)}10%{opacity:.5}100%{opacity:0;transform:translateY(-110vh) rotate(25deg)}}
+@media (prefers-reduced-motion:reduce){.beat{animation:none}.s{transition:none}.heart{display:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1><svg class="beat" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 5.800-8 11-8 11z"/></svg><span id="title">Together</span></h1>
+  <p class="sub" id="since"></p>
+  <div class="odo" id="days" role="img" aria-label="Days together"></div>
+  <p class="cap" id="cap">days together</p>
+  <div class="clock" aria-hidden="true">
+    <div class="u"><div class="odo" id="h"></div><small>hours</small></div>
+    <div class="u"><div class="odo" id="m"></div><small>minutes</small></div>
+    <div class="u"><div class="odo" id="sec"></div><small>seconds</small></div>
+  </div>
+  <div class="facts"><span id="ymd"></span><span id="next"></span></div>
+</main>
+<script>
+(function(){
+  var cfg={date:"2025-11-25",names:"Aung Khant Zin & Shwe Yamin Phyoe"},KEY="anniversary-cfg";
+  
+  var $=function(i){return document.getElementById(i)};
+  function col(){
+    var d=document.createElement("span"),s=document.createElement("span"),i;
+    d.className="d";s.className="s";
+    for(i=0;i<10;i++){var n=document.createElement("span");n.textContent=i;s.appendChild(n)}
+    d.appendChild(s);return d;
+  }
+  function setDigits(el,str){
+    while(el.children.length<str.length)el.insertBefore(col(),el.firstChild);
+    while(el.children.length>str.length)el.removeChild(el.firstChild);
+    for(var i=0;i<str.length;i++)el.children[i].firstChild.style.transform="translateY(-"+str[i]*10+"%)";
+  }
+  function pad(n){return n<10?"0"+n:""+n}
+  function plural(n,w){return n+" "+w+(n===1?"":"s")}
+  function start(){var p=cfg.date.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
+  function tick(){
+    var now=new Date(),st=start();
+    if(isNaN(st))return;
+    var ms=now-st,future=ms<0;ms=Math.abs(ms);
+    var days=Math.floor(ms/864e5);
+    setDigits($("days"),""+days);
+    $("days").setAttribute("aria-label",plural(days,"day"));
+    setDigits($("h"),pad(Math.floor(ms/36e5)%24));
+    setDigits($("m"),pad(Math.floor(ms/6e4)%60));
+    setDigits($("sec"),pad(Math.floor(ms/1e3)%60));
+    $("cap").textContent=future?"days to go":"days together";
+    if(!future){
+      var a=now,y=a.getFullYear()-st.getFullYear(),mo=a.getMonth()-st.getMonth(),d=a.getDate()-st.getDate();
+      if(d<0){mo--;d+=new Date(a.getFullYear(),a.getMonth(),0).getDate()}
+      if(mo<0){y--;mo+=12}
+      $("ymd").textContent=plural(y,"year")+", "+plural(mo,"month")+" and "+plural(d,"day");
+      var nx=new Date(a.getFullYear(),st.getMonth(),st.getDate());
+      var today=new Date(a.getFullYear(),a.getMonth(),a.getDate());
+      if(+nx===+today&&y>0){$("next").textContent="Happy anniversary! Today is the day."}
+      else{if(nx<today)nx=new Date(a.getFullYear()+1,st.getMonth(),st.getDate());
+        $("next").textContent="Next anniversary in "+plural(Math.round((nx-today)/864e5),"day")}
+    }else{$("ymd").textContent="The big day hasn’t arrived yet";$("next").textContent=""}
+  }
+  function labels(){
+    $("title").textContent=cfg.names||"Together";
+    var st=start();
+    $("since").textContent=isNaN(st)?"":"Since "+st.toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"});
+    document.title=(cfg.names||"Our")+" · Anniversary Counter";
+  }
+  
+  
+  
+  
+  labels();
+  setDigits($("days"),"0");setDigits($("h"),"00");setDigits($("m"),"00");setDigits($("sec"),"00");
+  requestAnimationFrame(function(){requestAnimationFrame(tick)});
+  setInterval(tick,1000);
+  if(!matchMedia("(prefers-reduced-motion:reduce)").matches){
+    setInterval(function(){
+      var h=document.createElement("span");h.className="heart";h.textContent="♥";
+      h.style.left=Math.random()*100+"vw";h.style.fontSize=(.8+Math.random()*1.4)+"rem";
+      h.style.animationDuration=(9+Math.random()*8)+"s";
+      h.addEventListener("animationend",function(){h.remove()});
+      document.body.appendChild(h);
+    },1400);
+  }
+})();
+</script>
+</body>
+</html>
